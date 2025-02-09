@@ -1,0 +1,3 @@
+A:/CLionProjects/Voxalite/cmake-build-debug/CMakeFiles/Voxalite.dir
+A:/CLionProjects/Voxalite/cmake-build-debug/CMakeFiles/edit_cache.dir
+A:/CLionProjects/Voxalite/cmake-build-debug/CMakeFiles/rebuild_cache.dir
