@@ -1,12 +1,34 @@
 #include "window.h"
 
 #include <cstdint>
+#include <print>
+#include <stdexcept>
 
 #define NOMINMAX
 
 #include <Windows.h>
-#include <stdexcept>
+
 #include "auto_release.h"
+
+
+namespace
+{
+auto g_running = true;
+
+auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT
+{
+    switch (Msg) {
+        case WM_CLOSE:
+            g_running = false;
+            break;
+        case WM_KEYDOWN:
+            std::println("key down");
+            break;
+    };
+
+    return ::DefWindowProcA(hWnd, Msg, wParam, lParam);
+}
+}
 
 namespace game
 {
@@ -14,7 +36,7 @@ Window::Window(std::uint32_t width, std::uint32_t height)
         : window_({}),
           wc_({})
 {
-    wc_ = {.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC, .lpfnWndProc = ::DefWindowProcA, .hInstance =::GetModuleHandleA(
+    wc_ = {.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC, .lpfnWndProc = window_proc, .hInstance =::GetModuleHandleA(
             nullptr), .lpszClassName = "window class",};
 
     if (::RegisterClassA(&wc_) == 0) {
@@ -35,5 +57,14 @@ Window::Window(std::uint32_t width, std::uint32_t height)
     ::UpdateWindow(window_);
 }
 
+auto Window::running() const -> bool
+{
+    auto message = ::MSG{};
+    while (::PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
+        ::TranslateMessage(&message);
+        ::DispatchMessageA(&message);
+    }
+    return g_running;
+}
 
 }

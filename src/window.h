@@ -21,6 +21,8 @@ public:
     Window(Window &&) noexcept = default;
     auto operator=(Window &&) noexcept -> Window & = default;
 
+    auto running() const -> bool;
+
 private:
     AutoRelease<::HWND, nullptr> window_;
     ::WNDCLASSA wc_;
