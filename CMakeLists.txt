@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.30)
-project(Voxalite)
+project(
+        Voxalite
+        VERSION 0.1.0
+        DESCRIPTION "A simple voxel engine"
+        LANGUAGES C CXX
+)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(Voxalite main.cpp)
+include_directories(src)
+
+add_executable(Voxalite main.cpp
+        src/auto_release.h
+        src/window.h
+        src/window.cpp)

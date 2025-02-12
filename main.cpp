@@ -1,8 +1,13 @@
-#include <iostream>
+#include <print>
+
+#include "window.h"
 
 int main() {
 
-    std::cout << "Hello, World!" << std::endl;
+    std::println("Hello, World!");
+
+    game::Window window{800u, 600u};
+    for (;;) {};
 
     return 0;
 }
