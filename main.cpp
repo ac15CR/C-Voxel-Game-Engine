@@ -1,14 +1,11 @@
-#include <print>
-
 #include "window.h"
 
-int main() {
-
-    std::println("Hello, World!");
+int main()
+{
 
     game::Window window{800u, 600u};
 
-    while(window.running()) {
+    while (window.running()) {
     }
 
     return 0;

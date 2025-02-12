@@ -13,4 +13,6 @@ include_directories(src)
 add_executable(Voxalite main.cpp
         src/auto_release.h
         src/window.h
-        src/window.cpp)
+        src/window.cpp
+        src/exception.h
+        src/exception.cpp)
