@@ -25,6 +25,7 @@ public:
 
 private:
     AutoRelease<::HWND, nullptr> window_;
+    AutoRelease<::HDC> dc_;
     ::WNDCLASSA wc_;
 };
 }

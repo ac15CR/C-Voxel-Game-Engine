@@ -1,10 +1,12 @@
 #include "exception.h"
 
+#include <cstdint>
+
 namespace game
 {
-Exception::Exception(const std::string &what)
+Exception::Exception(const std::string &what, std::uint32_t skip)
         : std::runtime_error{what},
-          trace_(std::stacktrace::current())
+          trace_(std::stacktrace::current(skip))
 {
 }
 

@@ -8,11 +8,16 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 
-include_directories(src)
+include_directories(src third_party/opengl)
 
 add_executable(Voxalite main.cpp
         src/auto_release.h
         src/window.h
         src/window.cpp
         src/exception.h
-        src/exception.cpp)
+        src/exception.cpp
+        src/error.h
+        third_party/opengl/wglext.h
+        third_party/opengl/glext.h)
+
+#target_include_directories(Voxalite PRIVATE src third_party/opengl)
