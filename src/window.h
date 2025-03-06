@@ -13,15 +13,20 @@ class Window
 {
 public:
     Window(std::uint32_t width, std::uint32_t height);
+
     ~Window() = default;
 
     Window(const Window &) = delete;
+
     auto operator=(const Window &) -> Window & = delete;
 
     Window(Window &&) noexcept = default;
+
     auto operator=(Window &&) noexcept -> Window & = default;
 
-    auto running() const -> bool;
+    bool running() const;
+
+    void swap() const;
 
 private:
     AutoRelease<::HWND, nullptr> window_;

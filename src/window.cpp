@@ -1,15 +1,19 @@
 #include "window.h"
 
+#include <Windows.h>
+#include <gl/gl.h>
+
+#include "../third_party/opengl/wglext.h"
+
 #include <cstdint>
 #include <print>
 #include <stdexcept>
 
 #define NOMINMAX
 
-#include <Windows.h>
-#include <gl/gl.h>
+#define NO_EXTERN // This is the one place where we actually define the functions and let the linker figure it out
 
-#include "../third_party/opengl/wglext.h"
+#include "opengl.h"
 
 #include "auto_release.h"
 #include "error.h"
@@ -41,7 +45,7 @@ auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lPa
 }
 
 template<class T>
-void resolve_wgl_function(T &function, const std::string &name)
+void resolve_gl_function(T &function, const std::string &name)
 {
     const auto address = ::wglGetProcAddress(name.c_str());
     game::ensure(address != nullptr, "failed to get address of wgl function: {}", name);
@@ -84,8 +88,8 @@ void resolve_wgl_functions(::HINSTANCE instance)
     game::ensure(::wglMakeCurrent(dc, context) == TRUE, "failed to make wgl context current");
 
     // resolve wgl functions
-    resolve_wgl_function(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
-    resolve_wgl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
+    resolve_gl_function(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
+    resolve_gl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
 
     game::ensure(::wglMakeCurrent(dc, 0) == TRUE, "failed to release wgl context");
 }
@@ -123,6 +127,12 @@ void init_opengl(::HDC dc)
     game::ensure(::wglMakeCurrent(dc, context) == TRUE, "failed to make wgl context current");
 }
 
+void resolve_global_gl_functions()
+{
+#define RESOLVE(TYPE, NAME) resolve_gl_function(NAME, #NAME);
+    FOR_OPENGL_FUNCTIONS(RESOLVE)
+}
+
 namespace game
 {
 Window::Window(std::uint32_t width, std::uint32_t height)
@@ -137,37 +147,36 @@ Window::Window(std::uint32_t width, std::uint32_t height)
 
     ::RECT rect{.left={}, .top = {}, .right=static_cast<int>(width), .bottom = static_cast<int>(height)};
 
-    if (::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) == 0) {
-        throw std::runtime_error{"failed to resize window"};
-    }
+    ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "failed to resize window rect");
 
     window_ = {::CreateWindowExA(0, wc_.lpszClassName, "game window", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
                                  rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, wc_.hInstance,
                                  nullptr), ::DestroyWindow};
 
-    dc_ = AutoRelease<::HDC>{::GetDC(window_),[this](auto dc) { ::ReleaseDC(window_, dc); }};
+    dc_ = AutoRelease<::HDC>{::GetDC(window_), [this](auto dc) { ::ReleaseDC(window_, dc); }};
 
     ::ShowWindow(window_, SW_SHOW);
     ::UpdateWindow(window_);
 
     resolve_wgl_functions(wc_.hInstance);
     init_opengl(dc_);
-
-//    ::glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
+    resolve_global_gl_functions();
 }
 
-auto Window::running() const -> bool
+bool Window::running() const
 {
     auto message = ::MSG{};
     while (::PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
         ::TranslateMessage(&message);
         ::DispatchMessageA(&message);
     }
-    // Dont need to resolve because its built in to windows (opengl like 1.1)
-    ::glClear(GL_COLOR_BUFFER_BIT);
-    ::SwapBuffers(dc_);
 
     return g_running;
+}
+
+void Window::swap() const
+{
+    ::SwapBuffers(dc_);
 }
 
 }

@@ -18,6 +18,7 @@ add_executable(Voxalite main.cpp
         src/exception.cpp
         src/error.h
         third_party/opengl/wglext.h
-        third_party/opengl/glext.h)
+        third_party/opengl/glext.h
+        src/opengl.h)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

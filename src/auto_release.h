@@ -62,7 +62,10 @@ public:
         return obj_;
     }
 
-    explicit operator bool() const { return obj_ != Invalid; }
+    explicit operator bool() const
+    {
+        return obj_ != Invalid;
+    }
 
 private:
     T obj_;
