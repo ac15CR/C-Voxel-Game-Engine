@@ -18,88 +18,108 @@
 
 #pragma comment(lib, "opengl32.lib") // Makes sure that the opengl32.lib is linked so can use wgl functions
 
-namespace {
-    // Draw Runes in the sand (TYPE | NAME)
-    PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
+namespace
+{
+// Draw Runes in the sand (TYPE | NAME)
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 
-    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
+PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
 
-    auto g_running = true;
+auto g_running = true;
 
-    auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT {
-        switch (Msg) {
-            case WM_CLOSE:
-                g_running = false;
-                break;
-            case WM_KEYDOWN:
-                std::println("key down");
-                break;
-        };
-
-        return ::DefWindowProcA(hWnd, Msg, wParam, lParam);
-    }
-
-    template<class T>
-    void resolve_gl_function(T &function, const std::string &name) {
-        const auto address = ::wglGetProcAddress(name.c_str());
-        game::ensure(address != nullptr, "failed to get address of wgl function: {}", name);
-
-        function = reinterpret_cast<T>(address);
-    }
-
-    void resolve_wgl_functions(::HINSTANCE instance) {
-        auto wc = ::WNDCLASS{
-            .style = CS_HREDRAW | CS_VREDRAW |
-                     CS_OWNDC,
-            .lpfnWndProc = ::DefWindowProc, .hInstance = instance, .lpszClassName = "dummy window"
-        };
-
-        game::ensure(::RegisterClassA(&wc) != 0, "failed to register dummy window");
-
-        auto dummy_window = game::AutoRelease<::HWND>{
-            ::CreateWindowExA(0, wc.lpszClassName, wc.lpszClassName, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                              CW_USEDEFAULT, nullptr, nullptr, instance, nullptr),
-            ::DestroyWindow
-        };
-
-        game::ensure(dummy_window, "failed to create dummy window");
-
-        auto dc = game::AutoRelease<::HDC>{
-            ::GetDC(dummy_window),
-            [&dummy_window](auto dc) { ::ReleaseDC(dummy_window, dc); }
-        };
-
-        game::ensure(dc, "failed to get dummy device context");
-
-        auto pdf = ::PIXELFORMATDESCRIPTOR{
-            .nSize = sizeof(::PIXELFORMATDESCRIPTOR), .nVersion = 1, .dwFlags =
-            PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-            PFD_DOUBLEBUFFER,
-            .iPixelType = PFD_TYPE_RGBA, .cColorBits = 32, .cAlphaBits = 8, .cDepthBits = 24, .cStencilBits = 8,
-            .iLayerType = PFD_MAIN_PLANE
-        };
-
-        auto pixel_format = ::ChoosePixelFormat(dc, &pdf);
-
-        game::ensure(pixel_format != 0, "failed to choose pixel format");
-
-        game::ensure(::SetPixelFormat(dc, pixel_format, &pdf) == TRUE, "failed to set pixel format");
-
-        const auto context = game::AutoRelease<::HGLRC>{::wglCreateContext(dc), ::wglDeleteContext};
-
-        game::ensure(context, "failed to create wgl context");
-
-        game::ensure(::wglMakeCurrent(dc, context) == TRUE, "failed to make wgl context current");
-
-        // resolve wgl functions
-        resolve_gl_function(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
-        resolve_gl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
-
-        game::ensure(::wglMakeCurrent(dc, 0) == TRUE, "failed to release wgl context");
-    }
+void APIENTRY opengl_debug_callback(
+    ::GLenum source,
+    ::GLenum type,
+    ::GLuint id,
+    ::GLenum severity,
+    ::GLsizei,
+    const ::GLchar *message,
+    const void *
+)
+{
+    std::println("{} {} {} {} {}", source, type, id, severity, message);
 }
 
-void init_opengl(::HDC dc) {
+auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT
+{
+    switch (Msg) {
+        case WM_CLOSE:
+            g_running = false;
+            break;
+        case WM_KEYDOWN:
+            std::println("key down");
+            break;
+    };
+
+    return ::DefWindowProcA(hWnd, Msg, wParam, lParam);
+}
+
+template<class T>
+void resolve_gl_function(T &function, const std::string &name)
+{
+    const auto address = ::wglGetProcAddress(name.c_str());
+    game::ensure(address != nullptr, "failed to get address of wgl function: {}", name);
+
+    function = reinterpret_cast<T>(address);
+}
+
+void resolve_wgl_functions(::HINSTANCE instance)
+{
+    auto wc = ::WNDCLASS{
+        .style = CS_HREDRAW | CS_VREDRAW |
+                 CS_OWNDC,
+        .lpfnWndProc = ::DefWindowProc, .hInstance = instance, .lpszClassName = "dummy window"
+    };
+
+    game::ensure(::RegisterClassA(&wc) != 0, "failed to register dummy window");
+
+    auto dummy_window = game::AutoRelease<::HWND>{
+        ::CreateWindowExA(
+            0, wc.lpszClassName, wc.lpszClassName, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            CW_USEDEFAULT, nullptr, nullptr, instance, nullptr
+        ),
+        ::DestroyWindow
+    };
+
+    game::ensure(dummy_window, "failed to create dummy window");
+
+    auto dc = game::AutoRelease<::HDC>{
+        ::GetDC(dummy_window),
+        [&dummy_window](auto dc) { ::ReleaseDC(dummy_window, dc); }
+    };
+
+    game::ensure(dc, "failed to get dummy device context");
+
+    auto pdf = ::PIXELFORMATDESCRIPTOR{
+        .nSize = sizeof(::PIXELFORMATDESCRIPTOR), .nVersion = 1, .dwFlags =
+        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
+        PFD_DOUBLEBUFFER,
+        .iPixelType = PFD_TYPE_RGBA, .cColorBits = 32, .cAlphaBits = 8, .cDepthBits = 24, .cStencilBits = 8,
+        .iLayerType = PFD_MAIN_PLANE
+    };
+
+    auto pixel_format = ::ChoosePixelFormat(dc, &pdf);
+
+    game::ensure(pixel_format != 0, "failed to choose pixel format");
+
+    game::ensure(::SetPixelFormat(dc, pixel_format, &pdf) == TRUE, "failed to set pixel format");
+
+    const auto context = game::AutoRelease<::HGLRC>{::wglCreateContext(dc), ::wglDeleteContext};
+
+    game::ensure(context, "failed to create wgl context");
+
+    game::ensure(::wglMakeCurrent(dc, context) == TRUE, "failed to make wgl context current");
+
+    // resolve wgl functions
+    resolve_gl_function(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
+    resolve_gl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
+
+    game::ensure(::wglMakeCurrent(dc, 0) == TRUE, "failed to release wgl context");
+}
+}
+
+void init_opengl(::HDC dc)
+{
     // Previously set on dummy window, now do real window and use actual wgl functions
     // PAIRS KEY, VALUE | Like the PIXELFORMATDESCRIPTOR
     int pixel_format_attribs[]{
@@ -116,8 +136,10 @@ void init_opengl(::HDC dc) {
     game::ensure(num_formats != 0u, "failed to choose pixel format");
 
     auto pdf = ::PIXELFORMATDESCRIPTOR{};
-    game::ensure(::DescribePixelFormat(dc, pixel_format, sizeof(pdf), &pdf) != 0,
-                 "failed to describe pixel format"); // fill in pdf with the pixel format
+    game::ensure(
+        ::DescribePixelFormat(dc, pixel_format, sizeof(pdf), &pdf) != 0,
+        "failed to describe pixel format"
+    ); // fill in pdf with the pixel format
     game::ensure(::SetPixelFormat(dc, pixel_format, &pdf) == TRUE, "failed to set pixel format");
 
     int gl_attribs[]{
@@ -132,56 +154,71 @@ void init_opengl(::HDC dc) {
     game::ensure(::wglMakeCurrent(dc, context) == TRUE, "failed to make wgl context current");
 }
 
-void resolve_global_gl_functions() {
+void resolve_global_gl_functions()
+{
 #define RESOLVE(TYPE, NAME) resolve_gl_function(NAME, #NAME);
     FOR_OPENGL_FUNCTIONS(RESOLVE)
 }
 
-namespace game {
-    Window::Window(std::uint32_t width, std::uint32_t height)
-        : window_({}),
-          dc_({}),
-          wc_({}) {
-        wc_ = {
-            .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC, .lpfnWndProc = window_proc, .hInstance = ::GetModuleHandleA(
-                nullptr),
-            .lpszClassName = "window class",
-        };
+void setup_debug()
+{
+    ::glEnable(GL_DEBUG_OUTPUT);
+    ::glDebugMessageCallback(opengl_debug_callback, nullptr);
+}
 
-        ensure(::RegisterClassA(&wc_) != 0, "failed to register window class");
+namespace game
+{
+Window::Window(std::uint32_t width, std::uint32_t height)
+    : window_({})
+    , dc_({})
+    , wc_({})
+{
+    wc_ = {
+        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC, .lpfnWndProc = window_proc, .hInstance = ::GetModuleHandleA(
+            nullptr
+        ),
+        .lpszClassName = "window class",
+    };
 
-        ::RECT rect{.left = {}, .top = {}, .right = static_cast<int>(width), .bottom = static_cast<int>(height)};
+    ensure(::RegisterClassA(&wc_) != 0, "failed to register window class");
 
-        ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "failed to resize window rect");
+    ::RECT rect{.left = {}, .top = {}, .right = static_cast<int>(width), .bottom = static_cast<int>(height)};
 
-        window_ = {
-            ::CreateWindowExA(0, wc_.lpszClassName, "game window", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-                              rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, wc_.hInstance,
-                              nullptr),
-            ::DestroyWindow
-        };
+    ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "failed to resize window rect");
 
-        dc_ = AutoRelease<::HDC>{::GetDC(window_), [this](auto dc) { ::ReleaseDC(window_, dc); }};
+    window_ = {
+        ::CreateWindowExA(
+            0, wc_.lpszClassName, "game window", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+            rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, wc_.hInstance,
+            nullptr
+        ),
+        ::DestroyWindow
+    };
 
-        ::ShowWindow(window_, SW_SHOW);
-        ::UpdateWindow(window_);
+    dc_ = AutoRelease<::HDC>{::GetDC(window_), [this](auto dc) { ::ReleaseDC(window_, dc); }};
 
-        resolve_wgl_functions(wc_.hInstance);
-        init_opengl(dc_);
-        resolve_global_gl_functions();
+    ::ShowWindow(window_, SW_SHOW);
+    ::UpdateWindow(window_);
+
+    resolve_wgl_functions(wc_.hInstance);
+    init_opengl(dc_);
+    resolve_global_gl_functions();
+    setup_debug();
+}
+
+bool Window::running() const
+{
+    auto message = ::MSG{};
+    while (::PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
+        ::TranslateMessage(&message);
+        ::DispatchMessageA(&message);
     }
 
-    bool Window::running() const {
-        auto message = ::MSG{};
-        while (::PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
-            ::TranslateMessage(&message);
-            ::DispatchMessageA(&message);
-        }
+    return g_running;
+}
 
-        return g_running;
-    }
-
-    void Window::swap() const {
-        ::SwapBuffers(dc_);
-    }
+void Window::swap() const
+{
+    ::SwapBuffers(dc_);
+}
 }

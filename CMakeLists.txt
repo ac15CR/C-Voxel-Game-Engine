@@ -19,6 +19,15 @@ add_executable(Voxalite main.cpp
         src/error.h
         third_party/opengl/wglext.h
         third_party/opengl/glext.h
-        src/opengl.h)
+        src/opengl.h
+        src/shader.h
+        src/shader.cpp
+        src/material.h
+        src/material.cpp
+        src/mesh.h
+        src/mesh.cpp
+        src/renderer.h
+        src/renderer.cpp
+        src/log.h)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

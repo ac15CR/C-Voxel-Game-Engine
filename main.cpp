@@ -1,15 +1,16 @@
-#include "window.h"
-#include "exception.h"
-#include <print>
+#include <format>
 #include <iostream>
-#include "opengl.h"
-#include "auto_release.h"
-#include "error.h"
 
+#include "exception.h"
+#include "material.h"
+#include "renderer.h"
+#include "shader.h"
+#include "window.h"
+
+#include "log.h"
 
 namespace
 {
-
 static constexpr auto vertex_shader_src = R"(
 #version 460 core
 
@@ -36,80 +37,27 @@ void main()
     frag_color = vec4(vertex_color, 1.0);
 }
 )";
-
-game::AutoRelease<::GLuint> compile_shader(std::string_view source, ::GLenum shader_type)
-{
-    auto shader = game::AutoRelease<::GLuint>{::glCreateShader(shader_type), ::glDeleteShader};
-
-    const ::GLchar *strings[] = {source.data()};
-    const ::GLint lengths[] = {static_cast<::GLint>(source.length())};
-
-    ::glShaderSource(shader, 1, strings, lengths);
-    ::glCompileShader(shader);
-
-    ::GLint result;
-    ::glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-    game::ensure(result, "failed to compile shader");
-
-    return shader;
-}
-
 }
 
 
 int main()
 {
-
-    // 3 float for position, 3 floats for color
-    static constexpr float vertex_data[] = {0.0, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, //
-                                            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, //
-                                            0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f //
-    };
+    game::log::fatal("my args: {}", 1);
 
     try {
+        const game::Window window{800u, 600u};
 
-        game::Window window{800u, 600u};
-
-        auto vertex_shader = compile_shader(vertex_shader_src, GL_VERTEX_SHADER);
-        auto fragment_shader = compile_shader(fragment_shader_src, GL_FRAGMENT_SHADER);
-
-        auto program = game::AutoRelease<::GLuint>{::glCreateProgram(), ::glDeleteProgram};
-        game::ensure(program, "failed to create opengl program");
-
-        ::glAttachShader(program, vertex_shader);
-        ::glAttachShader(program, fragment_shader);
-        ::glLinkProgram(program);
-
-        ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-        ::GLuint vao;
-        ::glGenVertexArrays(1, &vao);
-
-        ::GLuint vbo{};
-        ::glGenBuffers(1, &vbo);
-
-        ::glBindVertexArray(vao);
-
-        ::glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        ::glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
-
-        ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
-        ::glEnableVertexAttribArray(0);
-        ::glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-        ::glEnableVertexAttribArray(1);
-
-        ::glBindVertexArray(0);
+        const auto vertex_shader = game::Shader{vertex_shader_src, game::ShaderType::VERTEX};
+        const auto fragment_shader = game::Shader{fragment_shader_src, game::ShaderType::FRAGMENT};
+        auto material = game::Material{vertex_shader, fragment_shader};
+        const auto renderer = game::Renderer{std::move(material)};
 
         while (window.running()) {
-            ::glClear(GL_COLOR_BUFFER_BIT);
-
-            ::glUseProgram(program);
-            ::glBindVertexArray(vao);
-            ::glDrawArrays(GL_TRIANGLES, 0, 3);
-
+            renderer.render();
             window.swap();
         }
-    } catch (const game::Exception &err) {
+    }
+    catch (const game::Exception &err) {
         std::println(std::cerr, "{}", err);
     } catch (...) {
         std::println(std::cerr, "unknown error");

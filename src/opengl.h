@@ -17,12 +17,15 @@
     DO(::PFNGLATTACHSHADERPROC, glAttachShader) \
     DO(::PFNGLLINKPROGRAMPROC, glLinkProgram) \
     DO(::PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays) \
+    DO(::PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays) \
     DO(::PFNGLGENBUFFERSPROC, glGenBuffers) \
+    DO(::PFNGLDELETEBUFFERSPROC, glDeleteBuffers) \
     DO(::PFNGLBINDVERTEXARRAYPROC, glBindVertexArray) \
     DO(::PFNGLBINDBUFFERPROC, glBindBuffer) \
     DO(::PFNGLBUFFERDATAPROC, glBufferData)     \
     DO(::PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer) \
     DO(::PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray) \
+    DO(::PFNGLDEBUGMESSAGECALLBACKPROC, glDebugMessageCallback) \
     DO(::PFNGLUSEPROGRAMPROC, glUseProgram) \
 //    DO(::PFNGLDRAWARRAYSEXTPROC, glDrawArraysEXT)
 

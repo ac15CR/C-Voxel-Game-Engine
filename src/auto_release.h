@@ -5,19 +5,18 @@
 
 namespace game
 {
-
 template<class T, T Invalid = {}>
 class AutoRelease
 {
 public:
     AutoRelease()
-            : AutoRelease(Invalid, nullptr)
+        : AutoRelease(Invalid, nullptr)
     {
     }
 
     AutoRelease(T obj, std::function<void(T)> deleter)
-            : obj_(obj),
-              deleter_(deleter)
+        : obj_(obj),
+          deleter_(deleter)
     {
     }
 
@@ -33,7 +32,7 @@ public:
     auto operator=(const AutoRelease &) -> AutoRelease & = delete;
 
     AutoRelease(AutoRelease &&other) noexcept
-            : AutoRelease()
+        : AutoRelease()
     {
         swap(other);
     }
@@ -67,9 +66,13 @@ public:
         return obj_ != Invalid;
     }
 
+    T *operator&() noexcept
+    {
+        return std::addressof(obj_);
+    }
+
 private:
     T obj_;
     std::function<void(T)> deleter_;
-
 };
 }
