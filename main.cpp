@@ -1,14 +1,17 @@
 #include <format>
 #include <iostream>
+#include <numbers>
 
+#include "camera.h"
+#include "entity.h"
 #include "exception.h"
+#include "log.h"
 #include "material.h"
+#include "mesh.h"
 #include "renderer.h"
+#include "scene.h"
 #include "shader.h"
 #include "window.h"
-#include "matrix4.h"
-
-#include "log.h"
 
 namespace
 {
@@ -47,17 +50,27 @@ void main()
 
 int main()
 {
+    game::log::info("Initializing game");
 
     try {
         const game::Window window{800u, 600u};
 
         const auto vertex_shader = game::Shader{vertex_shader_src, game::ShaderType::VERTEX};
         const auto fragment_shader = game::Shader{fragment_shader_src, game::ShaderType::FRAGMENT};
-        auto material = game::Material{vertex_shader, fragment_shader};
-        const auto renderer = game::Renderer{std::move(material)};
+        const auto material = game::Material{vertex_shader, fragment_shader};
+        const auto mesh = game::Mesh{};
+        constexpr auto renderer = game::Renderer{};
+        const auto entity1 = game::Entity{&mesh, &material, {0.0f, -1.0f, 0.0f}};
+        const auto entity2 = game::Entity{&mesh, &material, {0.0f, 2.0f, 0.0f}};
+        auto scene = game::Scene{{&entity1, &entity2}};
+
+        const auto camera = game::Camera{
+            {3.0f, 0.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+            std::numbers::pi_v<float> / 4.0f, 800.0f, 600.0f, 0.1f, 100.0f
+        };
 
         while (window.running()) {
-            renderer.render();
+            renderer.render(camera, scene);
             window.swap();
         }
     }

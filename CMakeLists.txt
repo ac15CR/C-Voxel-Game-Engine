@@ -33,6 +33,13 @@ add_executable(Voxalite main.cpp
         src/color.h
         src/vertex_data.h
         src/matrix4.h
-        src/matrix4.cpp)
+        src/matrix4.cpp
+        src/camera.h
+        src/Camera.cpp
+        src/entity.h
+        src/entity.cpp
+        src/scene.h
+        src/stop_event.h
+        src/event.h)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

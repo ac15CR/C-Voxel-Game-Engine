@@ -1,19 +1,16 @@
 #pragma once
 
+#include "camera.h"
 #include "material.h"
-#include "mesh.h"
+#include "scene.h"
 
 namespace game
 {
-
 class Renderer
 {
 public:
-    Renderer(Material material);
-    void render() const;
-private:
-    Mesh mesh_;
-    Material material_;
-};
+    void render(const Camera &camera, const Scene &scene) const;
 
+private:
+};
 }
