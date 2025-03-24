@@ -21,6 +21,8 @@ struct Vector3
         return {i, j, k};
     }
 
+    constexpr bool operator==(const Vector3&) const = default;
+
     float x;
     float y;
     float z;

@@ -50,6 +50,8 @@ public:
 
     friend constexpr Matrix4 &operator*=(Matrix4 &m1, const Matrix4 &m2);
 
+    constexpr bool operator==(const Matrix4 &other) const = default;
+
 private:
     std::array<float, 16u> elements_;
 };

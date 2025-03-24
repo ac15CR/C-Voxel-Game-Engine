@@ -207,6 +207,9 @@ Window::Window(std::uint32_t width, std::uint32_t height)
     init_opengl(dc_);
     resolve_global_gl_functions();
     setup_debug();
+
+    //::glEnable(GL_CULL_FACE); // backface culling
+    ::glEnable(GL_DEPTH_TEST);
 }
 
 bool Window::running() const
