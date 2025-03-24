@@ -35,6 +35,7 @@ void APIENTRY opengl_debug_callback(
     ::GLsizei,
     const ::GLchar *message,
     const void *
+
 )
 {
     std::println("{} {} {} {} {}", source, type, id, severity, message);
@@ -163,6 +164,8 @@ void resolve_global_gl_functions()
 void setup_debug()
 {
     ::glEnable(GL_DEBUG_OUTPUT);
+    ::glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    // makes sure that the callback is called immediately, makes code a bit slower
     ::glDebugMessageCallback(opengl_debug_callback, nullptr);
 }
 

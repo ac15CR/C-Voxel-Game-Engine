@@ -28,6 +28,11 @@ add_executable(Voxalite main.cpp
         src/mesh.cpp
         src/renderer.h
         src/renderer.cpp
-        src/log.h)
+        src/log.h
+        src/vector3.h
+        src/color.h
+        src/vertex_data.h
+        src/matrix4.h
+        src/matrix4.cpp)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

@@ -6,12 +6,13 @@
 #include "renderer.h"
 #include "shader.h"
 #include "window.h"
+#include "matrix4.h"
 
 #include "log.h"
 
 namespace
 {
-static constexpr auto vertex_shader_src = R"(
+constexpr auto vertex_shader_src = R"(
 #version 460 core
 
 layout(location = 0) in vec3 position;
@@ -19,14 +20,18 @@ layout(location = 1) in vec3 color;
 
 out vec3 vertex_color;
 
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 void main()
 {
-    gl_Position = vec4(position, 1.0);
+    gl_Position = projection * view * model * vec4(position, 1.0);
     vertex_color = color;
 }
 )";
 
-static constexpr auto fragment_shader_src = R"(
+constexpr auto fragment_shader_src = R"(
 #version 460 core
 
 in vec3 vertex_color;
@@ -42,7 +47,26 @@ void main()
 
 int main()
 {
-    game::log::fatal("my args: {}", 1);
+    game::Matrix4 m1{
+        {
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f
+        }
+    };
+
+    game::Matrix4 m2{
+        {
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f,
+            1.0f, 2.0f, 3.0f, 4.0f
+        }
+    };
+
+    m1 *= m2;
+    std::println("{}", m1);
 
     try {
         const game::Window window{800u, 600u};

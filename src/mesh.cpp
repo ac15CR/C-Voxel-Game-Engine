@@ -1,23 +1,24 @@
 #include "mesh.h"
 #include "auto_release.h"
 #include "opengl.h"
-
+#include "vertex_data.h"
 
 namespace
 {
-// 3 float for position, 3 floats for color
-static constexpr float vertex_data[] = {
-    0.0, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, //
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, //
-    0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f //
+
+constexpr game::VertexData vertex_data[] = {
+    {{0.0, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    {{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
 };
+
 }
 
 namespace game
 {
 Mesh::Mesh()
-    : vao_{0u, [](auto vao){::glDeleteVertexArrays(1, &vao);}}
-    , vbo_{0u, [](auto vbo){::glDeleteBuffers(1, &vbo);}}
+    : vao_{0u, [](auto vao) { ::glDeleteVertexArrays(1, &vao); }}
+    , vbo_{0u, [](auto vbo) { ::glDeleteBuffers(1, &vbo); }}
 {
     ::glGenVertexArrays(1, &vao_);
 
