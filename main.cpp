@@ -47,26 +47,6 @@ void main()
 
 int main()
 {
-    game::Matrix4 m1{
-        {
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f
-        }
-    };
-
-    game::Matrix4 m2{
-        {
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f,
-            1.0f, 2.0f, 3.0f, 4.0f
-        }
-    };
-
-    m1 *= m2;
-    std::println("{}", m1);
 
     try {
         const game::Window window{800u, 600u};
