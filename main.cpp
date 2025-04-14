@@ -135,7 +135,8 @@ int main()
                 walk_direction += camera.right();
             }
 
-            camera.translate(game::Vector3::normalize(walk_direction));
+            static constexpr auto speed = 0.4f;
+            camera.translate(game::Vector3::normalize(walk_direction) * speed);
 
             renderer.render(camera, scene);
             window.swap();

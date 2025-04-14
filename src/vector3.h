@@ -7,6 +7,23 @@ namespace game
 {
 struct Vector3
 {
+    constexpr Vector3()
+        : Vector3(0.0f)
+    {
+    }
+
+    constexpr Vector3(const float xyz)
+        : Vector3(xyz, xyz, xyz)
+    {
+    }
+
+    constexpr Vector3(const float x, const float y, const float z)
+        : x(x)
+        , y(y)
+        , z(z)
+    {
+    }
+
     static Vector3 normalize(const Vector3 &v)
     {
         const auto length = std::hypot(v.x, v.y, v.z);
@@ -54,6 +71,21 @@ constexpr Vector3 operator+(const Vector3 &v1, const Vector3 &v2)
 {
     auto tmp = v1;
     return tmp += v2;
+}
+
+constexpr Vector3 & operator*=(Vector3 &v1, const Vector3 &v2)
+{
+    v1.x *= v2.x;
+    v1.y *= v2.y;
+    v1.z *= v2.z;
+
+    return v1;
+}
+
+constexpr Vector3 operator*(const Vector3 &v1, const Vector3 &v2)
+{
+    auto tmp = v1;
+    return tmp *= v2;
 }
 
 constexpr Vector3 operator-(const Vector3 &v1, const Vector3 &v2)
