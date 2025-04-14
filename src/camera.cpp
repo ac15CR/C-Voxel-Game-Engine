@@ -5,6 +5,20 @@
 #include "matrix4.h"
 #include "vector3.h"
 
+namespace
+{
+game::Vector3 create_direction(const float pitch, const float yaw)
+{
+    return game::Vector3::normalize(
+        {
+            std::cos(yaw) * std::cos(pitch),
+            std::sin(pitch),
+            std::sin(yaw) * std::cos(pitch)
+        }
+    );
+}
+}
+
 namespace game
 {
 Camera::Camera(
@@ -16,14 +30,40 @@ Camera::Camera(
     , position_(position)
     , direction_(look_at) // - position)
     , up_(up)
+    , pitch_{}
+    , yaw_{}
 {
+}
+
+Vector3 Camera::direction() const
+{
+    return direction_;
+}
+
+Vector3 Camera::right() const
+{
+    return Vector3::normalize(Vector3::cross(direction_, up_));
+}
+
+void Camera::adjust_yaw(const float adjust)
+{
+    yaw_ += adjust;
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = Matrix4::look_at(position_, position_ + direction_, up_);
+}
+
+void Camera::adjust_pitch(const float adjust)
+{
+    pitch_ += adjust;
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = Matrix4::look_at(position_, position_ + direction_, up_);
 }
 
 void Camera::translate(const Vector3 &translation)
 {
     position_ += translation;
-    direction_ += translation;
-    view_ = Matrix4::look_at(position_, direction_, up_);
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = Matrix4::look_at(position_, position_ + direction_, up_);
 }
 
 

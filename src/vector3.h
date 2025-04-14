@@ -50,6 +50,12 @@ constexpr Vector3 &operator+=(Vector3 &v1, const Vector3 &v2)
     return v1;
 }
 
+constexpr Vector3 operator+(const Vector3 &v1, const Vector3 &v2)
+{
+    auto tmp = v1;
+    return tmp += v2;
+}
+
 constexpr Vector3 operator-(const Vector3 &v1, const Vector3 &v2)
 {
     auto tmp = v1;

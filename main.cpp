@@ -1,21 +1,23 @@
 #include <format>
 #include <iostream>
 #include <numbers>
-#include <type_traits>
 #include <ranges>
+#include <type_traits>
+#include <unordered_map>
 #include <variant>
 
 #include "camera.h"
 #include "entity.h"
-#include "exception.h"
 #include "event.h"
-#include "stop_event.h"
+#include "exception.h"
 #include "log.h"
 #include "material.h"
 #include "mesh.h"
 #include "renderer.h"
 #include "scene.h"
 #include "shader.h"
+#include "stop_event.h"
+#include "mouse_event.h"
 #include "window.h"
 
 namespace
@@ -83,7 +85,7 @@ int main()
             std::numbers::pi_v<float> / 4.0f, 800.0f, 600.0f, 0.1f, 100.0f
         };
 
-        auto velocity = game::Vector3{0.0f, 0.0f, 0.0f};
+        std::unordered_map<game::Key, bool> key_state;
 
         auto running = true;
         while (running) {
@@ -99,31 +101,41 @@ int main()
                         } else if constexpr (std::same_as<T, game::KeyEvent>) {
                             if (arg.key() == game::Key::ESC) {
                                 running = false;
-                            } else if (arg.key() == game::Key::W) {
-                                // Temporary very volatile
-                                velocity += arg.state() == game::KeyState::UP
-                                                ? game::Vector3{0.0f, 0.0f, 1.0f}
-                                                : game::Vector3{0.0f, 0.0f, -1.0f};
-                            } else if (arg.key() == game::Key::A) {
-                                velocity += arg.state() == game::KeyState::UP
-                                                ? game::Vector3{1.0f, 0.0f, 0.0f}
-                                                : game::Vector3{-1.0f, 0.0f, 0.0f};
-                            } else if (arg.key() == game::Key::S) {
-                                velocity += arg.state() == game::KeyState::UP
-                                                ? game::Vector3{0.0f, 0.0f, -1.0f}
-                                                : game::Vector3{0.0f, 0.0f, 1.0f};
-                            } else if (arg.key() == game::Key::D) {
-                                velocity += arg.state() == game::KeyState::UP
-                                                ? game::Vector3{-1.0f, 0.0f, 0.0f}
-                                                : game::Vector3{1.0f, 0.0f, 0.0f};
                             }
+                            else {
+                                key_state[arg.key()] = arg.state() == game::KeyState::DOWN;
+                            }
+                        } else if constexpr (std::same_as<T, game::MouseEvent>) {
+                            static constexpr auto sensitivity = float{0.01f};
+                            const auto delta_x = arg.delta_x() * sensitivity;
+                            const auto delta_y = arg.delta_y() * sensitivity;
+                            camera.adjust_yaw(delta_x);
+                            camera.adjust_pitch(-delta_y);
                         }
                     }, *event
                 );
                 event = window.pump_event();
             }
 
-            camera.translate(game::Vector3::normalize(velocity));
+            auto walk_direction = game::Vector3{0.0f, 0.0f, 0.0f};
+
+            if (key_state[game::Key::W]) {
+                walk_direction += camera.direction();
+            }
+
+            if (key_state[game::Key::S]) {
+                walk_direction -= camera.direction();
+            }
+
+            if (key_state[game::Key::A]) {
+                walk_direction -= camera.right();
+            }
+
+            if (key_state[game::Key::D]) {
+                walk_direction += camera.right();
+            }
+
+            camera.translate(game::Vector3::normalize(walk_direction));
 
             renderer.render(camera, scene);
             window.swap();

@@ -21,6 +21,10 @@ public:
         float far_plane
     );
 
+    Vector3 direction() const;
+    Vector3 right() const;
+    void adjust_yaw(float adjust);
+    void adjust_pitch(float adjust);
     void translate(const Vector3 &translation); // relative position
     std::span<const float> view() const;
     std::span<const float> projection() const;
@@ -31,5 +35,7 @@ private:
     Vector3 position_;
     Vector3 direction_;
     Vector3 up_;
+    float pitch_;
+    float yaw_;
 };
 }

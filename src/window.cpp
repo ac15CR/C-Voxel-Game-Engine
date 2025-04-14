@@ -15,12 +15,15 @@
 
 #include "opengl.h"
 
+#include "hidusage.h"
+
 #include "auto_release.h"
 #include "error.h"
 #include "event.h"
 #include "stop_event.h"
 #include "log.h"
 #include "key_event.h"
+#include "mouse_event.h"
 #include "key.h"
 
 #pragma comment(lib, "opengl32.lib") // Makes sure that the opengl32.lib is linked so can use wgl functions
@@ -66,6 +69,26 @@ auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lPa
         case WM_KEYDOWN:
         {
             g_event_queue.emplace(game::KeyEvent{static_cast<game::Key>(wParam), game::KeyState::DOWN});
+            break;
+        }
+        case WM_INPUT:
+        {
+            auto raw = ::RAWINPUT{};
+            auto dwSize = ::UINT{sizeof(::RAWINPUT)};
+            // Technically undefined behavior with the cast, should be fine
+            // UINT -1 required for weird Windows API
+            game::ensure(
+                ::GetRawInputData(
+                    reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &raw, &dwSize, sizeof(::RAWINPUTHEADER)
+                ) != static_cast<::UINT>(-1), "failed to get raw input"
+            );
+
+            if (raw.header.dwType == RIM_TYPEMOUSE) {
+                const auto x  = raw.data.mouse.lLastX;
+                const auto y  = raw.data.mouse.lLastY;
+
+                g_event_queue.emplace(game::MouseEvent{static_cast<float>(x), static_cast<float>(y)});
+            }
             break;
         }
     };
@@ -220,6 +243,16 @@ Window::Window(std::uint32_t width, std::uint32_t height)
 
     ::ShowWindow(window_, SW_SHOW);
     ::UpdateWindow(window_);
+
+    const auto rid = ::RAWINPUTDEVICE
+    {
+        .usUsagePage = HID_USAGE_PAGE_GENERIC,
+        .usUsage = HID_USAGE_GENERIC_MOUSE,
+        .dwFlags = RIDEV_INPUTSINK,
+        .hwndTarget = window_
+    };
+
+    ensure(::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == TRUE, "failed to register raw input device");
 
     resolve_wgl_functions(wc_.hInstance);
     init_opengl(dc_);

@@ -18,14 +18,9 @@ enum class Level
 template<Level L, class... Args>
 struct print
 {
-};
-
-template<Level L, class... Args>
-struct print<L, const char *, Args...> // TODO: this has an issue with const and ref, it needs to be fixed
-{
     print(
-        const char *msg, Args &&... args,
-        [[maybe_unused]] const std::source_location &loc = std::source_location::current()
+        std::format_string<Args...> msg, Args &&... args,
+        const std::source_location &loc = std::source_location::current()
     )
     {
         auto c = '?';
@@ -40,13 +35,13 @@ struct print<L, const char *, Args...> // TODO: this has an issue with const and
         }
 
         std::println(
-            "[{}] {}:{} {}", c, loc.file_name(), loc.line(), std::vformat(msg, std::make_format_args(args...))
+            "[{}] {}:{} {}", c, loc.file_name(), loc.line(), std::format(msg, std::forward<Args>(args)...)
         );
     }
 };
 
 template<Level L, class... Args>
-print(Args...) -> print<L, Args...>;
+print(std::format_string<Args...>, Args &&...) -> print<L, Args...>;
 
 template<class... Args>
 using debug = print<Level::DEBUG, Args...>;
