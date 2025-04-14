@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <format>
 
 namespace game
 {
@@ -9,6 +10,9 @@ struct Vector3
     static Vector3 normalize(const Vector3 &v)
     {
         const auto length = std::hypot(v.x, v.y, v.z);
+        if (length == 0.0f) {
+            return {0.0f, 0.0f, 0.0f};
+        }
         return {v.x / length, v.y / length, v.z / length};
     }
 
@@ -21,7 +25,7 @@ struct Vector3
         return {i, j, k};
     }
 
-    constexpr bool operator==(const Vector3&) const = default;
+    constexpr bool operator==(const Vector3 &) const = default;
 
     float x;
     float y;
@@ -37,6 +41,15 @@ constexpr Vector3 &operator-=(Vector3 &v1, const Vector3 &v2)
     return v1;
 }
 
+constexpr Vector3 &operator+=(Vector3 &v1, const Vector3 &v2)
+{
+    v1.x += v2.x;
+    v1.y += v2.y;
+    v1.z += v2.z;
+
+    return v1;
+}
+
 constexpr Vector3 operator-(const Vector3 &v1, const Vector3 &v2)
 {
     auto tmp = v1;
@@ -48,3 +61,19 @@ constexpr Vector3 operator-(const Vector3 &v)
     return {-v.x, -v.y, -v.z};
 }
 }
+
+template<>
+struct std::formatter<game::Vector3>
+{
+    constexpr auto parse(std::format_parse_context &ctx)
+    {
+        return std::cbegin(ctx);
+    }
+
+    auto format(const game::Vector3 &obj, std::format_context &ctx) const
+    {
+        return std::format_to(
+            ctx.out(), "x={}, y={}, z={}", obj.x, obj.y, obj.z
+        );
+    }
+};

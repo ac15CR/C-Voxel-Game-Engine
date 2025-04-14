@@ -21,11 +21,15 @@ public:
         float far_plane
     );
 
+    void translate(const Vector3 &translation); // relative position
     std::span<const float> view() const;
     std::span<const float> projection() const;
 
 private:
     Matrix4 view_;
     Matrix4 projection_;
+    Vector3 position_;
+    Vector3 direction_;
+    Vector3 up_;
 };
 }

@@ -6,8 +6,10 @@
 #include "../third_party/opengl/wglext.h"
 
 #include <cstdint>
+#include <optional>
+#include <queue>
 #include <print>
-#include <stdexcept>
+#include <ranges>
 
 #define NOMINMAX
 
@@ -15,6 +17,11 @@
 
 #include "auto_release.h"
 #include "error.h"
+#include "event.h"
+#include "stop_event.h"
+#include "log.h"
+#include "key_event.h"
+#include "key.h"
 
 #pragma comment(lib, "opengl32.lib") // Makes sure that the opengl32.lib is linked so can use wgl functions
 
@@ -25,7 +32,7 @@ PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
 
-auto g_running = true;
+auto g_event_queue = std::queue<game::Event>{};
 
 void APIENTRY opengl_debug_callback(
     ::GLenum source,
@@ -36,6 +43,8 @@ void APIENTRY opengl_debug_callback(
     const ::GLchar *message,
     const void *
 
+
+
 )
 {
     std::println("{} {} {} {} {}", source, type, id, severity, message);
@@ -45,11 +54,20 @@ auto CALLBACK window_proc(::HWND hWnd, ::UINT Msg, ::WPARAM wParam, ::LPARAM lPa
 {
     switch (Msg) {
         case WM_CLOSE:
-            g_running = false;
+        {
+            g_event_queue.emplace(game::StopEvent{});
             break;
+        }
+        case WM_KEYUP:
+        {
+            g_event_queue.emplace(game::KeyEvent{static_cast<game::Key>(wParam), game::KeyState::UP});
+            break;
+        }
         case WM_KEYDOWN:
-            std::println("key down");
+        {
+            g_event_queue.emplace(game::KeyEvent{static_cast<game::Key>(wParam), game::KeyState::DOWN});
             break;
+        }
     };
 
     return ::DefWindowProcA(hWnd, Msg, wParam, lParam);
@@ -66,7 +84,7 @@ void resolve_gl_function(T &function, const std::string &name)
 
 void resolve_wgl_functions(::HINSTANCE instance)
 {
-    auto wc = ::WNDCLASS{
+    const auto wc = ::WNDCLASS{
         .style = CS_HREDRAW | CS_VREDRAW |
                  CS_OWNDC,
         .lpfnWndProc = ::DefWindowProc, .hInstance = instance, .lpszClassName = "dummy window"
@@ -212,15 +230,19 @@ Window::Window(std::uint32_t width, std::uint32_t height)
     ::glEnable(GL_DEPTH_TEST);
 }
 
-bool Window::running() const
+std::optional<Event> Window::pump_event() const
 {
     auto message = ::MSG{};
     while (::PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
         ::TranslateMessage(&message);
         ::DispatchMessageA(&message);
     }
-
-    return g_running;
+    if (!std::ranges::empty(g_event_queue)) {
+        const auto event = g_event_queue.front();
+        g_event_queue.pop();
+        return event;
+    }
+    return {};
 }
 
 void Window::swap() const

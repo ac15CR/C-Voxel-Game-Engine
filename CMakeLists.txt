@@ -40,6 +40,9 @@ add_executable(Voxalite main.cpp
         src/entity.cpp
         src/scene.h
         src/stop_event.h
-        src/event.h)
+        src/event.h
+        src/key.h
+        src/key_event.h
+        src/key_event.cpp)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

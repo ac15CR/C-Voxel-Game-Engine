@@ -21,7 +21,7 @@ struct print
 };
 
 template<Level L, class... Args>
-struct print<L, const char *, Args...>
+struct print<L, const char *, Args...> // TODO: this has an issue with const and ref, it needs to be fixed
 {
     print(
         const char *msg, Args &&... args,

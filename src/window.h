@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 #define NOMINMAX
 
 #include <Windows.h>
 #include "auto_release.h"
+#include "event.h"
 
 namespace game
 {
@@ -24,7 +26,7 @@ public:
 
     auto operator=(Window &&) noexcept -> Window & = default;
 
-    bool running() const;
+    std::optional<Event> pump_event() const;
 
     void swap() const;
 
