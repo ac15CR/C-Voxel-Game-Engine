@@ -31,8 +31,12 @@ layout(location = 1) in vec3 color;
 out vec3 vertex_color;
 
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+
+layout(std140, binding = 0) uniform camera
+{
+    mat4 view;
+    mat4 projection;
+};
 
 void main()
 {
@@ -66,7 +70,7 @@ int main()
         const auto fragment_shader = game::Shader{fragment_shader_src, game::ShaderType::FRAGMENT};
         const auto material = game::Material{vertex_shader, fragment_shader};
         const auto mesh = game::Mesh{};
-        constexpr auto renderer = game::Renderer{};
+        auto renderer = game::Renderer{};
 
         auto entities = std::vector<game::Entity>{};
 

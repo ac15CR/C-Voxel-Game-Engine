@@ -18,14 +18,21 @@ public:
 
     // Obscure array size deduction template
     template<class T, std::size_t N>
-    auto write(const T (&data)[N])
+    void write(const T (&data)[N])
     {
         buffer_.write({reinterpret_cast<const std::byte *>(data), sizeof(T) * N}, offset_);
         offset_ += sizeof(T) * N;
     }
 
+    template<class T>
+    void write(std::span<const T> data)
+    {
+        buffer_.write(std::as_bytes(data), offset_);
+        offset_ += data.size_bytes();
+    }
+
 private:
     const Buffer &buffer_;
-    std::uint32_t offset_;
+    std::size_t offset_;
 };
 }
