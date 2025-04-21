@@ -1,12 +1,14 @@
 #include "renderer.h"
 
+#include "buffer_writer.h"
 #include "camera.h"
 #include "entity.h"
 #include "material.h"
 #include "mesh.h"
 #include "opengl.h"
+#include "sampler.h"
 #include "scene.h"
-#include "buffer_writer.h"
+#include "texture.h"
 
 namespace game
 {
@@ -29,13 +31,19 @@ void Renderer::render(const Camera &camera, const Scene &scene) const
     for (const auto *entity : scene.entities) {
         const auto *material = entity->material();
         const auto *mesh = entity->mesh();
+        const auto *texture = entity->texture();
+        const auto *sampler = entity->sampler();
 
         ::glUseProgram(material->native_handle());
 
         const auto model_uniform = ::glGetUniformLocation(material->native_handle(), "model");
         ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, entity->model().data());
 
+        ::glBindTextureUnit(0, texture->native_handle());
+        ::glBindSampler(0, sampler->native_handle());
 
+        const auto tex_uniform = ::glGetUniformLocation(material->native_handle(), "tex");
+        ::glUniform1i(tex_uniform, 0);
 
         mesh->bind();
         ::glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -19,45 +19,8 @@
 #include "stop_event.h"
 #include "mouse_event.h"
 #include "window.h"
-
-namespace
-{
-constexpr auto vertex_shader_src = R"(
-#version 460 core
-
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 color;
-
-out vec3 vertex_color;
-
-uniform mat4 model;
-
-layout(std140, binding = 0) uniform camera
-{
-    mat4 view;
-    mat4 projection;
-};
-
-void main()
-{
-    gl_Position = projection * view * model * vec4(position, 1.0);
-    vertex_color = color;
-}
-)";
-
-constexpr auto fragment_shader_src = R"(
-#version 460 core
-
-in vec3 vertex_color;
-out vec4 frag_color;
-
-void main()
-{
-    frag_color = vec4(vertex_color, 1.0);
-}
-)";
-}
-
+#include "resource_loader.h"
+#include "texture.h"
 
 int main()
 {
@@ -66,55 +29,64 @@ int main()
     try {
         const game::Window window{800u, 600u};
 
-        const auto vertex_shader = game::Shader{vertex_shader_src, game::ShaderType::VERTEX};
-        const auto fragment_shader = game::Shader{fragment_shader_src, game::ShaderType::FRAGMENT};
+        const game::ResourceLoader resource_loader{"../assets/"sv};
+
+        const game::Texture texture{resource_loader.load_binary("wooden_crate.png"), 256, 256};
+        const game::Sampler sampler{};
+
+        const auto vertex_shader = game::Shader{resource_loader.load_string("simple.vert"), game::ShaderType::VERTEX};
+        const auto fragment_shader = game::Shader{resource_loader.load_string("simple.frag"), game::ShaderType::FRAGMENT};
         const auto material = game::Material{vertex_shader, fragment_shader};
         const auto mesh = game::Mesh{};
-        auto renderer = game::Renderer{};
+        const auto renderer = game::Renderer{};
 
         auto entities = std::vector<game::Entity>{};
 
         for (auto i = -10; i < 10; ++i) {
             for (auto j = -10; j < 10; ++j) {
                 entities.emplace_back(
-                    &mesh, &material, game::Vector3{static_cast<float>(i) * 2.5f, -3.0f, static_cast<float>(j) * 2.5f});
+                    &mesh, &material, game::Vector3{static_cast<float>(i) * 2.5f, -3.0f, static_cast<float>(j) * 2.5f}, &texture, &sampler
+                );
             }
         }
 
-//        for (auto i = -15; i < 15; ++i) {
-//            for (auto j = -15; j < 15; ++j) {
-//                float distFromCenter = std::sqrt(i*i + j*j);
-//
-//                float height = -3.0f;
-//                if (distFromCenter < 10.0f) {
-//                    height += (10.0f - distFromCenter) * 0.5f;
-//                }
-//
-//                entities.emplace_back(
-//                        &mesh, &material,
-//                        game::Vector3{static_cast<float>(i) * 2.5f, height, static_cast<float>(j) * 2.5f});
-//            }
-//        }
+        //        for (auto i = -15; i < 15; ++i) {
+        //            for (auto j = -15; j < 15; ++j) {
+        //                float distFromCenter = std::sqrt(i*i + j*j);
+        //
+        //                float height = -3.0f;
+        //                if (distFromCenter < 10.0f) {
+        //                    height += (10.0f - distFromCenter) * 0.5f;
+        //                }
+        //
+        //                entities.emplace_back(
+        //                        &mesh, &material,
+        //                        game::Vector3{static_cast<float>(i) * 2.5f, height, static_cast<float>(j) * 2.5f});
+        //            }
+        //        }
 
-//        int radius = 10;
-//
-//        for (int x = -radius; x <= radius; x += 1) {
-//            for (int y = -radius; y <= radius; y += 1) {
-//                for (int z = -radius; z <= radius; z += 1) {
-//
-//                    float distSquared = x*x + y*y + z*z;
-//
-//                    if (distSquared <= radius*radius) {
-//                        entities.emplace_back(
-//                                &mesh, &material,
-//                                game::Vector3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)});
-//                    }
-//                }
-//            }
-//        }
+        //        int radius = 10;
+        //
+        //        for (int x = -radius; x <= radius; x += 1) {
+        //            for (int y = -radius; y <= radius; y += 1) {
+        //                for (int z = -radius; z <= radius; z += 1) {
+        //
+        //                    float distSquared = x*x + y*y + z*z;
+        //
+        //                    if (distSquared <= radius*radius) {
+        //                        entities.emplace_back(
+        //                                &mesh, &material,
+        //                                game::Vector3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)});
+        //                    }
+        //                }
+        //            }
+        //        }
 
         // I still don't understand this but this is how it works I guess
-        const auto scene = game::Scene{entities | std::views::transform([](const auto &e) { return &e; }) | std::ranges::to<std::vector<const game::Entity *>>()};
+        const auto scene = game::Scene{
+            entities | std::views::transform([](const auto &e) { return &e; }) | std::ranges::to<std::vector<const
+                game::Entity *> >()
+        };
 
         auto camera = game::Camera{
             {0.0f, 0.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
@@ -137,8 +109,7 @@ int main()
                         } else if constexpr (std::same_as<T, game::KeyEvent>) {
                             if (arg.key() == game::Key::ESC) {
                                 running = false;
-                            }
-                            else {
+                            } else {
                                 key_state[arg.key()] = arg.state() == game::KeyState::DOWN;
                             }
                         } else if constexpr (std::same_as<T, game::MouseEvent>) {

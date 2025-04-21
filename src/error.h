@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <memory>
 #include <string_view>
 #include <utility>
 
@@ -22,6 +23,12 @@ template<class T, auto Invalid, class ...Args>
 void ensure(AutoRelease<T, Invalid> &obj, std::string_view msg, Args &&...args)
 {
     ensure(!!obj, msg, std::forward<Args>(args)...); // REQUIRED DO NOT REMOVE THE !!
+}
+
+template<class T, class D, class ...Args>
+void ensure(std::unique_ptr<T, D> &obj, std::string_view msg, Args &&...args)
+{
+    ensure(!!obj, msg, std::forward<Args>(args)...);
 }
 
 }

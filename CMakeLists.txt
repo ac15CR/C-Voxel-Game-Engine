@@ -8,7 +8,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 
-include_directories(src third_party/opengl)
+include_directories(src third_party/opengl third_party/stb)
 
 add_executable(Voxalite main.cpp
         src/auto_release.h
@@ -17,6 +17,7 @@ add_executable(Voxalite main.cpp
         src/exception.h
         src/exception.cpp
         src/error.h
+        third_party/stb/stb_image.h
         third_party/opengl/wglext.h
         third_party/opengl/glext.h
         src/opengl.h
@@ -48,6 +49,12 @@ add_executable(Voxalite main.cpp
         src/mouse_event.cpp
         src/buffer.h
         src/buffer.cpp
-        src/buffer_writer.h)
+        src/buffer_writer.h
+        src/resource_loader.h
+        src/resource_loader.cpp
+        src/texture.h
+        src/texture.cpp
+        src/sampler.h
+        src/sample.cpp)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)
