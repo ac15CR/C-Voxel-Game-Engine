@@ -77,6 +77,38 @@ int main()
             }
         }
 
+//        for (auto i = -15; i < 15; ++i) {
+//            for (auto j = -15; j < 15; ++j) {
+//                float distFromCenter = std::sqrt(i*i + j*j);
+//
+//                float height = -3.0f;
+//                if (distFromCenter < 10.0f) {
+//                    height += (10.0f - distFromCenter) * 0.5f;
+//                }
+//
+//                entities.emplace_back(
+//                        &mesh, &material,
+//                        game::Vector3{static_cast<float>(i) * 2.5f, height, static_cast<float>(j) * 2.5f});
+//            }
+//        }
+
+//        int radius = 10;
+//
+//        for (int x = -radius; x <= radius; x += 1) {
+//            for (int y = -radius; y <= radius; y += 1) {
+//                for (int z = -radius; z <= radius; z += 1) {
+//
+//                    float distSquared = x*x + y*y + z*z;
+//
+//                    if (distSquared <= radius*radius) {
+//                        entities.emplace_back(
+//                                &mesh, &material,
+//                                game::Vector3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)});
+//                    }
+//                }
+//            }
+//        }
+
         // I still don't understand this but this is how it works I guess
         const auto scene = game::Scene{entities | std::views::transform([](const auto &e) { return &e; }) | std::ranges::to<std::vector<const game::Entity *>>()};
 
@@ -135,7 +167,7 @@ int main()
                 walk_direction += camera.right();
             }
 
-            static constexpr auto speed = 0.4f;
+            static constexpr auto speed = 0.07f;
             camera.translate(game::Vector3::normalize(walk_direction) * speed);
 
             renderer.render(camera, scene);

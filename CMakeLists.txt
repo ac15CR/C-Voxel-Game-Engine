@@ -45,6 +45,9 @@ add_executable(Voxalite main.cpp
         src/key_event.h
         src/key_event.cpp
         src/mouse_event.h
-        src/mouse_event.cpp)
+        src/mouse_event.cpp
+        src/buffer.h
+        src/buffer.cpp
+        src/buffer_writer.h)
 
 #target_include_directories(Voxalite PRIVATE src third_party/opengl)

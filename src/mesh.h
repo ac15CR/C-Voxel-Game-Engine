@@ -4,6 +4,7 @@
 
 #include "auto_release.h"
 #include "opengl.h"
+#include "buffer.h"
 
 namespace game
 {
@@ -22,7 +23,7 @@ public:
 
 private:
     AutoRelease<::GLuint> vao_;
-    AutoRelease<::GLuint> vbo_;
+    Buffer vbo_;
     std::uint32_t index_count_;
     std::uintptr_t index_offset_;
 };
