@@ -2,6 +2,7 @@
 
 #include "buffer_writer.h"
 #include "camera.h"
+#include "color.h"
 #include "entity.h"
 #include "material.h"
 #include "mesh.h"
@@ -9,11 +10,25 @@
 #include "sampler.h"
 #include "scene.h"
 #include "texture.h"
+#include "vector3.h"
+
+namespace
+{
+
+struct LightBuffer
+{
+    alignas(16) game::Color ambient;
+    alignas(16) game::Vector3 direction;
+    alignas(16) game::Color direction_color;
+};
+
+}
 
 namespace game
 {
 Renderer::Renderer()
     : camera_buffer_{sizeof(Matrix4) * 2u}
+    , light_buffer_{sizeof(LightBuffer)}
 {
 }
 
@@ -26,7 +41,14 @@ void Renderer::render(const Camera &camera, const Scene &scene) const
         writer.write(camera.projection());
     }
 
+    {
+        const LightBuffer light_buffer{scene.ambient, scene.directional.direction, scene.directional.color};
+        BufferWriter writer{light_buffer_};
+        writer.write(light_buffer);
+    }
+
     ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_buffer_.native_handle());
+    ::glBindBufferBase(GL_UNIFORM_BUFFER, 1, light_buffer_.native_handle());
 
     for (const auto *entity : scene.entities) {
         const auto *material = entity->material();

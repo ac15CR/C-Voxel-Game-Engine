@@ -15,6 +15,7 @@ struct UV
 struct VertexData
 {
     Vector3 position;
+    Vector3 normal;
     UV uv;
 };
 

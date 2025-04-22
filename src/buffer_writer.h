@@ -11,9 +11,16 @@ class BufferWriter
 {
 public:
     BufferWriter(const Buffer &buffer)
-            : buffer_(buffer),
-              offset_{}
+        : buffer_(buffer)
+        , offset_{}
     {
+    }
+
+    template<class T>
+    void write(const T &obj) requires std::is_trivially_copyable_v<T>
+    {
+        auto spn = std::span<const T>{&obj, 1};
+        write(spn);
     }
 
     // Obscure array size deduction template

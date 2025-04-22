@@ -15,5 +15,6 @@ public:
 
 private:
     Buffer camera_buffer_;
+    Buffer light_buffer_;
 };
 }

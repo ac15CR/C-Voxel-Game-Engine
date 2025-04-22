@@ -13,14 +13,14 @@
 #include "log.h"
 #include "material.h"
 #include "mesh.h"
+#include "mouse_event.h"
 #include "renderer.h"
+#include "resource_loader.h"
 #include "scene.h"
 #include "shader.h"
 #include "stop_event.h"
-#include "mouse_event.h"
-#include "window.h"
-#include "resource_loader.h"
 #include "texture.h"
+#include "window.h"
 
 int main()
 {
@@ -82,10 +82,11 @@ int main()
         //            }
         //        }
 
-        // I still don't understand this but this is how it works I guess
         const auto scene = game::Scene{
             entities | std::views::transform([](const auto &e) { return &e; }) | std::ranges::to<std::vector<const
-                game::Entity *> >()
+                game::Entity *> >(),
+            {0.5f, 0.5f, 0.5f},
+            {{-1.1f, -1.0f, -1.0f}, {0.3f, 1.0f, 1.0f}}
         };
 
         auto camera = game::Camera{
