@@ -21,6 +21,7 @@ public:
         float far_plane
     );
 
+    Vector3 position() const;
     Vector3 direction() const;
     Vector3 right() const;
     void adjust_yaw(float adjust);

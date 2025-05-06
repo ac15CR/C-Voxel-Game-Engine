@@ -168,7 +168,7 @@ int main()
             camera.translate(game::Vector3::normalize(walk_direction) * speed);
 
             static auto t = 0.0f;
-            t += 0.002f;
+            t += 0.001f;
 
             scene.point.position.x = std::sin(t) * 10.0f;
             scene.point.position.z = std::cos(t) * 10.0f;

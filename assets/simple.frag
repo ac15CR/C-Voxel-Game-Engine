@@ -7,6 +7,13 @@ out vec4 frag_color;
 
 uniform sampler2D tex;
 
+layout(std140, binding = 0) uniform camera
+{
+    mat4 view;
+    mat4 projection;
+    vec3 eye;
+};
+
 layout(std140, binding = 1) uniform lights
 {
     vec3 ambient;
@@ -31,8 +38,12 @@ vec3 calc_direction()
 vec3 calc_point()
 {
     vec3 light_dir = normalize(point - frag_position.xyz);
-    float diff = max(dot(normal,light_dir), 0.0) * 30.0f;
-    return (diff / (length(point - frag_position.xyz)))  * point_color;
+    float diff = max(dot(normal,light_dir), 0.0) * 20.0f;
+
+    vec3 reflect_dir = reflect(-light_dir, normal);
+    float spec = pow(max(dot(normalize(eye - frag_position.xyz), reflect_dir), 0.0), 32.0) * 30.0f;
+
+    return ((diff + spec) / (length(point - frag_position.xyz)))  * point_color;
 }
 
 void main()

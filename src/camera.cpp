@@ -35,6 +35,11 @@ Camera::Camera(
 {
 }
 
+Vector3 Camera::position() const
+{
+    return position_;
+}
+
 Vector3 Camera::direction() const
 {
     return direction_;

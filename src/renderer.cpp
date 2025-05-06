@@ -27,7 +27,7 @@ struct LightBuffer
 namespace game
 {
 Renderer::Renderer()
-    : camera_buffer_{sizeof(Matrix4) * 2u}
+    : camera_buffer_{sizeof(Matrix4) * 2u + sizeof(Vector3)}
       , light_buffer_{sizeof(LightBuffer)}
 {
 }
@@ -39,6 +39,7 @@ void Renderer::render(const Camera &camera, const Scene &scene) const
         BufferWriter writer{camera_buffer_};
         writer.write(camera.view());
         writer.write(camera.projection());
+        writer.write(camera.position());
     } {
         const LightBuffer light_buffer{
             scene.ambient,
