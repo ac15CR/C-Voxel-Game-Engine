@@ -8,7 +8,8 @@ namespace
 {
 ::GLenum to_native(const game::ShaderType type)
 {
-    switch (type) {
+    switch (type)
+    {
             using enum game::ShaderType;
         case VERTEX:
             return GL_VERTEX_SHADER;
@@ -33,9 +34,15 @@ Shader::Shader(std::string_view source, ShaderType type)
     ::glShaderSource(handle_, 1, strings, lengths);
     ::glCompileShader(handle_);
 
-    ::GLint result;
+    ::GLint result{};
     ::glGetShaderiv(handle_, GL_COMPILE_STATUS, &result);
-    ensure(result, "failed to compile shader {}", type);
+
+    if (result != GL_TRUE)
+    {
+        char log[512];
+        ::glGetShaderInfoLog(handle_, sizeof(log), nullptr, log);
+        ensure(result, "failed to compile shader {}\n{}", type, log);
+    }
 }
 
 ShaderType Shader::type() const
@@ -47,5 +54,4 @@ ShaderType Shader::type() const
 {
     return handle_;
 }
-
 }

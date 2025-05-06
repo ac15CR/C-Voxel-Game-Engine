@@ -2,6 +2,7 @@
 
 in vec3 normal;
 in vec2 tex_coord;
+in vec4 frag_position;
 out vec4 frag_color;
 
 uniform sampler2D tex;
@@ -11,16 +12,35 @@ layout(std140, binding = 1) uniform lights
     vec3 ambient;
     vec3 direction;
     vec3 direction_color;
+    vec3 point;
+    vec3 point_color;
 };
+
+vec3 calc_ambient()
+{
+    return ambient;
+}
+
+vec3 calc_direction()
+{
+    vec3 light_dir = normalize(-direction);
+    float diff = max(dot(normal, light_dir), 0.0);
+    return diff * direction_color;
+}
+
+vec3 calc_point()
+{
+    vec3 light_dir = normalize(point - frag_position.xyz);
+    float diff = max(dot(normal,light_dir), 0.0) * 30.0f;
+    return (diff / (length(point - frag_position.xyz)))  * point_color;
+}
 
 void main()
 {
     vec4 albedo = texture(tex, tex_coord);
-    vec4 amb_color = vec4(ambient, 1.0) * albedo;
+    vec3 amb_color = calc_ambient();
+    vec3 dir_color = calc_direction();
+    vec3 point_color = calc_point();
 
-    vec3 light_dir = normalize(-direction);
-    float diff = max(dot(normal, light_dir), 0.0);
-    vec4 dir_color = vec4(diff * direction_color, 1.0) * albedo;
-
-    frag_color = amb_color + dir_color;
+    frag_color = vec4((amb_color + dir_color + point_color) * albedo.rgb, 1.0);
 }

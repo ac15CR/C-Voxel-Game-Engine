@@ -17,6 +17,16 @@ Material::Material(const Shader &vertex_shader, const Shader &fragment_shader)
     ::glAttachShader(handle_, vertex_shader.native_handle());
     ::glAttachShader(handle_, fragment_shader.native_handle());
     ::glLinkProgram(handle_);
+
+    ::GLint result{};
+    ::glGetProgramiv(handle_, GL_LINK_STATUS, &result);
+
+    if (result != GL_TRUE)
+    {
+        char log[512];
+        ::glGetProgramInfoLog(handle_, sizeof(log), nullptr, log);
+        ensure(result, "failed to link program\n{}", log);
+    }
 }
 
 GLuint Material::native_handle() const

@@ -14,21 +14,21 @@
 
 namespace
 {
-
 struct LightBuffer
 {
     alignas(16) game::Color ambient;
     alignas(16) game::Vector3 direction;
     alignas(16) game::Color direction_color;
+    alignas(16) game::Vector3 position;
+    alignas(16) game::Color point_color;
 };
-
 }
 
 namespace game
 {
 Renderer::Renderer()
     : camera_buffer_{sizeof(Matrix4) * 2u}
-    , light_buffer_{sizeof(LightBuffer)}
+      , light_buffer_{sizeof(LightBuffer)}
 {
 }
 
@@ -39,10 +39,14 @@ void Renderer::render(const Camera &camera, const Scene &scene) const
         BufferWriter writer{camera_buffer_};
         writer.write(camera.view());
         writer.write(camera.projection());
-    }
-
-    {
-        const LightBuffer light_buffer{scene.ambient, scene.directional.direction, scene.directional.color};
+    } {
+        const LightBuffer light_buffer{
+            scene.ambient,
+            scene.directional.direction,
+            scene.directional.color,
+            scene.point.position,
+            scene.point.color
+        };
         BufferWriter writer{light_buffer_};
         writer.write(light_buffer);
     }
@@ -50,7 +54,7 @@ void Renderer::render(const Camera &camera, const Scene &scene) const
     ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_buffer_.native_handle());
     ::glBindBufferBase(GL_UNIFORM_BUFFER, 1, light_buffer_.native_handle());
 
-    for (const auto *entity : scene.entities) {
+    for (const auto *entity: scene.entities) {
         const auto *material = entity->material();
         const auto *mesh = entity->mesh();
         const auto *texture = entity->texture();

@@ -26,7 +26,8 @@ int main()
 {
     game::log::info("Initializing game");
 
-    try {
+    try
+    {
         const game::Window window{800u, 600u};
 
         const game::ResourceLoader resource_loader{"../assets/"sv};
@@ -35,17 +36,22 @@ int main()
         const game::Sampler sampler{};
 
         const auto vertex_shader = game::Shader{resource_loader.load_string("simple.vert"), game::ShaderType::VERTEX};
-        const auto fragment_shader = game::Shader{resource_loader.load_string("simple.frag"), game::ShaderType::FRAGMENT};
+        const auto fragment_shader = game::Shader{
+            resource_loader.load_string("simple.frag"), game::ShaderType::FRAGMENT
+        };
         const auto material = game::Material{vertex_shader, fragment_shader};
         const auto mesh = game::Mesh{};
         const auto renderer = game::Renderer{};
 
         auto entities = std::vector<game::Entity>{};
 
-        for (auto i = -10; i < 10; ++i) {
-            for (auto j = -10; j < 10; ++j) {
+        for (auto i = -10; i < 10; ++i)
+        {
+            for (auto j = -10; j < 10; ++j)
+            {
                 entities.emplace_back(
-                    &mesh, &material, game::Vector3{static_cast<float>(i) * 2.5f, -3.0f, static_cast<float>(j) * 2.5f}, &texture, &sampler
+                    &mesh, &material, game::Vector3{static_cast<float>(i) * 2.5f, -3.0f, static_cast<float>(j) * 2.5f},
+                    &texture, &sampler
                 );
             }
         }
@@ -65,28 +71,29 @@ int main()
         //            }
         //        }
 
-        //        int radius = 10;
-        //
-        //        for (int x = -radius; x <= radius; x += 1) {
-        //            for (int y = -radius; y <= radius; y += 1) {
-        //                for (int z = -radius; z <= radius; z += 1) {
-        //
-        //                    float distSquared = x*x + y*y + z*z;
-        //
-        //                    if (distSquared <= radius*radius) {
-        //                        entities.emplace_back(
-        //                                &mesh, &material,
-        //                                game::Vector3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)});
-        //                    }
-        //                }
-        //            }
-        //        }
+        // int radius = 5;
 
-        const auto scene = game::Scene{
+        // for (int x = -radius; x <= radius; x += 1) {
+        //     for (int y = -radius; y <= radius; y += 1) {
+        //         for (int z = -radius; z <= radius; z += 1) {
+        //             float distSquared = x * x + y * y + z * z;
+
+        //             if (distSquared <= radius * radius) {
+        //                 entities.emplace_back(
+        //                     &mesh, &material,
+        //                     game::Vector3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)},
+        //                     &texture, &sampler);
+        //             }
+        //         }
+        //     }
+        // }
+
+        auto scene = game::Scene{
             entities | std::views::transform([](const auto &e) { return &e; }) | std::ranges::to<std::vector<const
                 game::Entity *> >(),
-            {0.5f, 0.5f, 0.5f},
-            {{-1.1f, -1.0f, -1.0f}, {0.3f, 1.0f, 1.0f}}
+            {0.1f, 0.1f, 0.1f},
+            {{-1.1f, -1.0f, -1.0f}, {0.0f, 0.0f, 0.0f}},
+            {{0.0f, 3.0f, 0.0f}, {0.5f, 0.5f, 0.5f}}
         };
 
         auto camera = game::Camera{
@@ -97,23 +104,33 @@ int main()
         std::unordered_map<game::Key, bool> key_state;
 
         auto running = true;
-        while (running) {
+        while (running)
+        {
             auto event = window.pump_event(); // TODO: Change to do while
-            while (event && running) {
+            while (event && running)
+            {
                 std::visit(
                     [&](auto &&arg) // TODO: this is not good, it should be changed
                     {
                         using T = std::decay_t<decltype(arg)>;
 
-                        if constexpr (std::same_as<T, game::StopEvent>) {
+                        if constexpr (std::same_as<T, game::StopEvent>)
+                        {
                             running = false;
-                        } else if constexpr (std::same_as<T, game::KeyEvent>) {
-                            if (arg.key() == game::Key::ESC) {
+                        }
+                        else if constexpr (std::same_as<T, game::KeyEvent>)
+                        {
+                            if (arg.key() == game::Key::ESC)
+                            {
                                 running = false;
-                            } else {
+                            }
+                            else
+                            {
                                 key_state[arg.key()] = arg.state() == game::KeyState::DOWN;
                             }
-                        } else if constexpr (std::same_as<T, game::MouseEvent>) {
+                        }
+                        else if constexpr (std::same_as<T, game::MouseEvent>)
+                        {
                             static constexpr auto sensitivity = float{0.01f};
                             const auto delta_x = arg.delta_x() * sensitivity;
                             const auto delta_y = arg.delta_y() * sensitivity;
@@ -127,32 +144,44 @@ int main()
 
             auto walk_direction = game::Vector3{0.0f, 0.0f, 0.0f};
 
-            if (key_state[game::Key::W]) {
+            if (key_state[game::Key::W])
+            {
                 walk_direction += camera.direction();
             }
 
-            if (key_state[game::Key::S]) {
+            if (key_state[game::Key::S])
+            {
                 walk_direction -= camera.direction();
             }
 
-            if (key_state[game::Key::A]) {
+            if (key_state[game::Key::A])
+            {
                 walk_direction -= camera.right();
             }
 
-            if (key_state[game::Key::D]) {
+            if (key_state[game::Key::D])
+            {
                 walk_direction += camera.right();
             }
 
-            static constexpr auto speed = 0.07f;
+            static constexpr auto speed = 0.03f;
             camera.translate(game::Vector3::normalize(walk_direction) * speed);
+
+            static auto t = 0.0f;
+            t += 0.002f;
+
+            scene.point.position.x = std::sin(t) * 10.0f;
+            scene.point.position.z = std::cos(t) * 10.0f;
 
             renderer.render(camera, scene);
             window.swap();
         }
     }
-    catch (const game::Exception &err) {
+    catch (const game::Exception &err)
+    {
         std::println(std::cerr, "{}", err);
-    } catch (...) {
+    } catch (...)
+    {
         std::println(std::cerr, "unknown error");
     }
 
